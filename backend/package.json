@@ -1,0 +1,17 @@
+{
+  "name": "socket-chat-backend",
+  "version": "1.0.0",
+  "description": "Backend Socket.io and Express server for OrbitChat",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "nodemon app.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

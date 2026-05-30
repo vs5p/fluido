@@ -1,0 +1,16 @@
+{
+  "name": "socket-chat-workspace",
+  "version": "1.0.0",
+  "description": "Root workspace orchestrator for OrbitChat",
+  "scripts": {
+    "install:all": "npm install && npm install --prefix backend && npm install --prefix frontend",
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm --prefix frontend run build",
+    "start": "npm --prefix backend run start"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.0"
+  }
+}
