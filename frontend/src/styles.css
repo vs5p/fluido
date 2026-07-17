@@ -1,0 +1,226 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ============================================================
+   macOS dark design system — system font, vibrancy, depth.
+   ============================================================ */
+
+:root {
+  /* Backgrounds — layered like macOS window chrome */
+  --bg-base:        #1c1c1e;
+  --bg-elevated:    #2c2c2e;
+  --bg-surface:     #3a3a3c;
+  --bg-control:     #48484a;
+  --bg-hover:       #545456;
+
+  --vibrancy-light: rgba(255,255,255,0.06);
+  --vibrancy-dark:  rgba(0,0,0,0.25);
+
+  --text-primary:   rgba(255,255,255,0.92);
+  --text-secondary: rgba(255,255,255,0.55);
+  --text-tertiary:  rgba(255,255,255,0.28);
+  --text-disabled:  rgba(255,255,255,0.18);
+
+  --separator:        rgba(255,255,255,0.10);
+  --separator-strong: rgba(255,255,255,0.18);
+
+  --accent:       #0a84ff;
+  --accent-hover: #409cff;
+  --accent-dim:   rgba(10,132,255,0.20);
+
+  --green:  #30d158;
+  --yellow: #ffd60a;
+  --red:    #ff453a;
+  --orange: #ff9f0a;
+
+  --canvas-bg: #fafaf8;
+
+  /* shadcn token bridge so existing primitives still render */
+  --background: #1c1c1e;
+  --foreground: rgba(255,255,255,0.92);
+  --card: #2c2c2e;
+  --card-foreground: rgba(255,255,255,0.92);
+  --popover: #2c2c2e;
+  --popover-foreground: rgba(255,255,255,0.92);
+  --primary: #0a84ff;
+  --primary-foreground: #ffffff;
+  --secondary: #3a3a3c;
+  --secondary-foreground: rgba(255,255,255,0.92);
+  --muted: #2c2c2e;
+  --muted-foreground: rgba(255,255,255,0.55);
+  --accent-color: #0a84ff;
+  --accent-foreground: #ffffff;
+  --destructive: #ff453a;
+  --destructive-foreground: #ffffff;
+  --border: rgba(255,255,255,0.10);
+  --input: rgba(255,255,255,0.10);
+  --ring: rgba(10,132,255,0.40);
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+
+  --color-bg-base: var(--bg-base);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-bg-surface: var(--bg-surface);
+  --color-bg-control: var(--bg-control);
+  --color-bg-hover: var(--bg-hover);
+
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+
+  --color-separator: var(--separator);
+  --color-separator-strong: var(--separator-strong);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-red: var(--red);
+  --color-orange: var(--orange);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+@layer base {
+  * { border-color: var(--separator); }
+
+  html, body, #app, #root {
+    height: 100%;
+  }
+
+  html, body {
+    overflow: hidden;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+    font-weight: 500;
+  }
+
+  button { font-family: inherit; }
+
+  /* macOS-style thin scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+    transition: background 0.15s ease;
+  }
+  *:hover > ::-webkit-scrollbar-thumb,
+  :hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.35); }
+}
+
+/* ============================================================
+   Reusable utility classes — macOS surface primitives.
+   ============================================================ */
+
+.mac-panel {
+  background: rgba(28,28,30,0.85);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+  box-shadow:
+    0 2px 8px rgba(0,0,0,0.40),
+    0 0 0 0.5px rgba(255,255,255,0.08);
+}
+
+.mac-surface {
+  background: var(--bg-elevated);
+  border: 1px solid var(--separator);
+  border-radius: 12px;
+}
+
+.mac-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  background: var(--bg-control);
+  color: var(--text-primary);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--separator);
+  transition: background 0.12s ease, transform 0.12s ease;
+  min-height: 32px;
+  cursor: pointer;
+}
+.mac-btn:hover { background: var(--bg-hover); }
+.mac-btn:active { transform: scale(0.97); }
+.mac-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.mac-btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+.mac-btn-primary:hover { background: var(--accent-hover); }
+
+.mac-input {
+  background: var(--bg-control);
+  border: 1px solid var(--separator);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 16px; /* Prevents auto-zoom on iOS Safari/Chrome */
+  color: var(--text-primary);
+  outline: none;
+  width: 100%;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+}
+.mac-input::placeholder { color: var(--text-tertiary); }
+.mac-input:focus {
+  box-shadow: 0 0 0 3px var(--accent-dim);
+  border-color: var(--accent);
+}
+
+.mac-label-caps {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+.mac-traffic-light {
+  width: 12px; height: 12px; border-radius: 50%;
+  display: inline-block;
+}
+
+.text-primary-mac   { color: var(--text-primary); }
+.text-secondary-mac { color: var(--text-secondary); }
+.text-tertiary-mac  { color: var(--text-tertiary); }

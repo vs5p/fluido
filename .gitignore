@@ -1,17 +1,26 @@
 # Dependencies
 node_modules/
-frontend/node_modules
 backend/node_modules
+frontend/node_modules/
 
 # Production Build Outputs
-frontend/dist/
 backend/dist/
+frontend/dist/
 
 # Environments
 .env*
+frontend/.env*
 
 # Editor & OS files
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Sensitive Keys & Credentials
+*firebase-service-account.json
+
+# Local database data & logs
+backend/data/
+backend/game-debug.log
+backend/app.js.backup
