@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { IconX } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -77,19 +77,20 @@ export function CreateRoomModal({ onClose }: Props) {
   };
 
   return (
-    <AnimatePresence>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      onClick={() => onClose?.()}
+    >
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.95, opacity: 0 }}
+        className="w-full max-w-md mx-4 bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl p-6"
+        onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.95, opacity: 0 }}
-          className="w-full max-w-md mx-4 bg-zinc-950 border border-white/10 rounded-2xl shadow-2xl p-6"
-        >
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-white">Create Room</h2>
             <button
@@ -194,6 +195,5 @@ export function CreateRoomModal({ onClose }: Props) {
           </div>
         </motion.div>
       </motion.div>
-    </AnimatePresence>
-  );
-}
+    );
+  }
