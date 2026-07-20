@@ -926,34 +926,34 @@ function startDrawing(room, word) {
     dateTime: new Date().toISOString()
   });
 
-  // Dynamic hint mechanics: Scale number of hints & timing based on word length
+  // Production-Level Hint System (skribbl.io standard)
   const letterCount = wordChars.filter(c => /[a-zA-Z]/.test(c)).length;
 
   let maxHints = 1;
-  if (letterCount <= 4) {
-    maxHints = 1;
-  } else if (letterCount <= 7) {
-    maxHints = 2;
-  } else if (letterCount <= 11) {
-    maxHints = 3;
+  if (letterCount <= 3) {
+    maxHints = 1; // 1-3 letters: 1 hint
+  } else if (letterCount <= 6) {
+    maxHints = 2; // 4-6 letters: 2 hints (e.g. 4-letter words get 2 hints!)
+  } else if (letterCount <= 9) {
+    maxHints = 3; // 7-9 letters: 3 hints
   } else {
-    maxHints = 4;
+    maxHints = 4; // 10+ letters: 4 hints
   }
 
-  // Ensure at least 25% of letters remain unrevealed
-  const maxAllowed = Math.max(1, Math.floor(letterCount * 0.70));
+  // Cap maxHints so at least 1-2 letters remain hidden
+  const maxAllowed = Math.max(1, letterCount - 2);
   maxHints = Math.min(maxHints, maxAllowed);
 
-  // Calculate threshold percentages of remaining time
+  // Optimal Production Hint Timings (Percentage of round time remaining)
   let hintThresholds = [];
   if (maxHints === 1) {
-    hintThresholds = [0.45];
+    hintThresholds = [0.60]; // 1 hint: at 60% time remaining (after 40% elapsed)
   } else if (maxHints === 2) {
-    hintThresholds = [0.60, 0.30];
+    hintThresholds = [0.70, 0.35]; // 2 hints: at 70% and 35% time remaining
   } else if (maxHints === 3) {
-    hintThresholds = [0.65, 0.40, 0.20];
+    hintThresholds = [0.75, 0.45, 0.20]; // 3 hints: at 75%, 45%, and 20% time remaining
   } else {
-    hintThresholds = [0.70, 0.50, 0.30, 0.15];
+    hintThresholds = [0.75, 0.55, 0.35, 0.15]; // 4 hints: at 75%, 55%, 35%, and 15% time remaining
   }
 
   const hintTimes = hintThresholds.map(pct => Math.floor(room.roundDuration * pct));
@@ -965,8 +965,7 @@ function startDrawing(room, word) {
       if (/[a-zA-Z]/.test(c) && room._revealedArr[i] === '_') hiddenPositions.push(i);
     });
 
-    const minHiddenRequired = Math.max(1, Math.floor(letterCount * 0.25));
-    if (hiddenPositions.length <= minHiddenRequired) return;
+    if (hiddenPositions.length <= 1) return; // Keep at least 1 letter hidden
 
     const pick = hiddenPositions[Math.floor(Math.random() * hiddenPositions.length)];
     room._revealedArr[pick] = wordChars[pick];
