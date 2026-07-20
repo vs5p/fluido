@@ -305,10 +305,10 @@ export function CanvasPanel() {
         {/* Waiting overlay when canvas is locked */}
         {!canDraw && gameState !== 'waiting' && gameState !== 'drawing' && (
           <div
-            className="absolute inset-0 z-10 flex items-center justify-center"
-            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)", pointerEvents: "auto" }}
+            className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none"
+            style={{ background: "rgba(0,0,0,0.45)", backdropFilter: "blur(3px)" }}
           >
-            <div className="text-center px-6 py-4 rounded-lg" style={{ background: "rgba(28,28,30,0.9)", border: "1px solid var(--separator)" }}>
+            <div className="text-center px-6 py-4 rounded-lg pointer-events-auto" style={{ background: "rgba(28,28,30,0.9)", border: "1px solid var(--separator)" }}>
               <div className="text-[14px] text-primary-mac font-medium mb-1">
                 {gameState === 'word_selection' && `${drawerName} is choosing a word…`}
                 {gameState === 'round_end' && 'Round ended!'}
