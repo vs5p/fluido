@@ -31,16 +31,148 @@ const io = require("socket.io")(server, {
   }
 });
 
-// Game constants
-const WORDS = [
+// Expanded curated word list (250+ drawing-friendly items)
+const RAW_WORDS = [
   "apple", "banana", "sun", "cloud", "car", "house", "tree", "dog", "cat", "fish",
   "star", "moon", "boat", "plane", "smile", "flower", "heart", "book", "cup", "hat",
   "guitar", "phone", "clock", "chair", "table", "key", "door", "window", "shoe", "socks",
   "pizza", "burger", "cookie", "cake", "ice cream", "spider", "snake", "bird", "rabbit", "lion",
   "rocket", "alien", "robot", "castle", "bridge", "mountain", "river", "beach", "drum",
   "train", "bicycle", "helicopter", "volcano", "pyramid", "wizard", "superman", "batman", "dinosaur", "monster",
-  "hamburger", "pencil", "dolphin", "elephant", "giraffe", "monkey", "octopus", "penguin", "kangaroo", "butterfly"
+  "hamburger", "pencil", "dolphin", "elephant", "giraffe", "monkey", "octopus", "penguin", "kangaroo", "butterfly",
+  "anchor", "anvil", "backpack", "balloon", "battery", "bed", "bell", "blanket", "bottle", "broom",
+  "bucket", "button", "cactus", "camera", "candle", "carriage", "chain", "chest",
+  "compass", "crown", "diamond", "dice", "envelope", "feather", "flag",
+  "flashlight", "fork", "ghost", "glasses", "glove", "hammer", "helmet", "horn", "ladder",
+  "lamp", "lantern", "laptop", "lemon", "letter", "lightbulb", "lighthouse", "lock", "magnet", "map",
+  "mirror", "mushroom", "needle", "nest", "newspaper", "notebook", "padlock", "paint", "paintbrush", "passport",
+  "pillow", "ring", "scissors", "shield", "shovel", "skull", "soap",
+  "spoon", "statue", "sword", "telescope", "tent", "ticket", "toothbrush", "torch", "treasure", "trophy",
+  "umbrella", "violin", "wallet", "watch", "wheel", "windmill", "wrench",
+  "avocado", "bacon", "bagel", "bread", "broccoli", "candy", "carrot", "cheese", "cherry", "chocolate",
+  "coffee", "donut", "egg", "grapes", "hotdog", "lollipop", "milk", "onion", "pancake", "peach",
+  "peanut", "pear", "pineapple", "popcorn", "potato", "pumpkin", "sandwich", "strawberry", "sushi", "taco", "tea", "watermelon",
+  "cave", "comet", "desert", "earth", "fire", "forest", "galaxy", "island", "jungle", "lightning",
+  "meteor", "ocean", "planet", "rain", "rainbow", "satellite", "sky", "snow", "snowflake", "space",
+  "storm", "sunflower", "tornado", "waterfall", "wave",
+  "ambulance", "astronaut", "automobile", "bus", "captain", "clown", "cowboy", "detective", "dragon", "driver",
+  "firefighter", "ninja", "nurse", "pilot", "pirate", "police", "princess", "queen", "racer", "samurai",
+  "ship", "submarine", "superhero", "tractor", "truck", "vampire", "witch", "zombie"
 ];
+
+// Deduplicate words list
+const WORDS = Array.from(new Set(RAW_WORDS));
+
+/**
+ * Industry-Standard Damerau-Levenshtein Distance Algorithm
+ * Handles insertions, deletions, substitutions, and transpositions of adjacent characters.
+ */
+function damerauLevenshteinDistance(source, target) {
+  if (!source) return target ? target.length : 0;
+  if (!target) return source.length;
+
+  const m = source.length;
+  const n = target.length;
+  const INF = m + n;
+
+  const score = Array.from({ length: m + 2 }, () => new Array(n + 2).fill(0));
+  score[0][0] = INF;
+
+  for (let i = 0; i <= m; i++) {
+    score[i + 1][0] = INF;
+    score[i + 1][1] = i;
+  }
+  for (let j = 0; j <= n; j++) {
+    score[0][j + 1] = INF;
+    score[1][j + 1] = j;
+  }
+
+  const sd = {};
+  const combined = source + target;
+  for (let i = 0; i < combined.length; i++) {
+    sd[combined[i]] = 0;
+  }
+
+  for (let i = 1; i <= m; i++) {
+    let DB = 0;
+    for (let j = 1; j <= n; j++) {
+      const i1 = sd[target[j - 1]] || 0;
+      const j1 = DB;
+
+      let cost = 1;
+      if (source[i - 1] === target[j - 1]) {
+        cost = 0;
+        DB = j;
+      }
+
+      score[i + 1][j + 1] = Math.min(
+        score[i][j] + cost,
+        score[i + 1][j] + 1,
+        score[i][j + 1] + 1,
+        score[i1][j1] + (i - i1 - 1) + 1 + (j - j1 - 1)
+      );
+    }
+    sd[source[i - 1]] = i;
+  }
+
+  return score[m + 1][n + 1];
+}
+
+function normalizeWord(str) {
+  if (!str) return "";
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+/**
+ * Industry-Standard Guess Matching Evaluator
+ * Returns { isCorrect: boolean, isClose: boolean }
+ */
+function checkGuessSimilarity(guessStr, targetWordStr) {
+  const normGuess = normalizeWord(guessStr);
+  const normTarget = normalizeWord(targetWordStr);
+
+  if (!normGuess || !normTarget) return { isCorrect: false, isClose: false };
+
+  // 1. Direct exact match
+  if (normGuess === normTarget) {
+    return { isCorrect: true, isClose: false };
+  }
+
+  // Strip spaces, hyphens, and underscores for variation matching (e.g. "icecream" vs "ice cream")
+  const strippedGuess = normGuess.replace(/[\s\-_]/g, "");
+  const strippedTarget = normTarget.replace(/[\s\-_]/g, "");
+
+  if (strippedGuess.length > 0 && strippedGuess === strippedTarget) {
+    return { isCorrect: true, isClose: false };
+  }
+
+  // 2. Minimum length check: Guess must be at least 3 chars long & at least 45% length of target
+  if (strippedGuess.length < 3 || strippedGuess.length < Math.floor(strippedTarget.length * 0.45)) {
+    return { isCorrect: false, isClose: false };
+  }
+
+  // 3. Damerau-Levenshtein distance calculation
+  const distance = damerauLevenshteinDistance(strippedGuess, strippedTarget);
+  const targetLen = strippedTarget.length;
+
+  let isClose = false;
+  if (targetLen <= 4) {
+    // 3-4 letter words: distance must be 1
+    isClose = distance === 1;
+  } else if (targetLen <= 7) {
+    // 5-7 letter words: distance must be 1
+    isClose = distance === 1;
+  } else {
+    // 8+ letter words: distance 1 or 2, max 25% edit distance
+    isClose = distance === 1 || (distance === 2 && (distance / targetLen) <= 0.25);
+  }
+
+  return { isCorrect: false, isClose };
+}
 
 // Initialize room manager
 const roomManager = new RoomManager();
@@ -560,11 +692,9 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const normalizeGuess = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const normalizedMessage = normalizeGuess(messageText);
-      const normalizedWord = normalizeGuess(room.currentWord);
+      const matchResult = checkGuessSimilarity(messageText, room.currentWord);
 
-      if (normalizedMessage === normalizedWord) {
+      if (matchResult.isCorrect) {
         player.hasGuessed = true;
         const points = Math.max(30, Math.round(100 * (room.timer / room.roundDuration)));
         player.score += points;
@@ -609,19 +739,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      // "Close!" feedback — 1 char off (Levenshtein distance = 1)
-      function levenshtein(a, b) {
-        const dp = Array.from({ length: a.length + 1 }, (_, i) =>
-          Array.from({ length: b.length + 1 }, (_, j) => i === 0 ? j : j === 0 ? i : 0)
-        );
-        for (let i = 1; i <= a.length; i++)
-          for (let j = 1; j <= b.length; j++)
-            dp[i][j] = a[i-1] === b[j-1]
-              ? dp[i-1][j-1]
-              : 1 + Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
-        return dp[a.length][b.length];
-      }
-      if (levenshtein(normalizedMessage, normalizedWord) === 1) {
+      if (matchResult.isClose) {
         // 1. Broadcast the guess to the whole room so everyone sees it
         io.to(`room:${room.id}`).emit("chat-message", {
           name: player.name,
@@ -633,7 +751,7 @@ io.on("connection", (socket) => {
         // 2. Privately tell only the guesser they were close
         socket.emit("chat-message", {
           name: "System",
-          message: `🔥 So close! Try again!`,
+          message: `🔥 "${messageText}" is so close!`,
           isSystem: true,
           dateTime: new Date().toISOString()
         });
@@ -780,8 +898,19 @@ async function startWordSelection(room) {
     room.currentDrawerProfileId = drawer.authId;
   }
 
-  // Get random words
-  const shuffled = [...WORDS].sort(() => 0.5 - Math.random());
+  // Ensure usedWords set exists on room instance
+  if (!room.usedWords) {
+    room.usedWords = new Set();
+  }
+
+  // Filter available words to avoid repeating used words in this match
+  let availableWords = WORDS.filter(w => !room.usedWords.has(w.toLowerCase()));
+  if (availableWords.length < 3) {
+    room.usedWords.clear(); // Reset used words set if full dictionary used
+    availableWords = [...WORDS];
+  }
+
+  const shuffled = [...availableWords].sort(() => 0.5 - Math.random());
   room.wordChoices = shuffled.slice(0, 3);
   room.timer = room.wordSelectionDuration;
 
@@ -802,6 +931,10 @@ async function startWordSelection(room) {
 function startDrawing(room, word) {
   room.gameState = 'drawing';
   room.currentWord = word.toLowerCase();
+  
+  if (!room.usedWords) room.usedWords = new Set();
+  room.usedWords.add(room.currentWord);
+
   room.drawingHistory = [];
   room.timer = room.roundDuration;
   room.hintRevealed = 0;
@@ -829,10 +962,9 @@ function startDrawing(room, word) {
     dateTime: new Date().toISOString()
   });
 
-  // Hint schedule: reveal 1 letter at 60%, 1 more at 30% time remaining
-  const totalLetters = wordChars.filter(c => /[a-zA-Z]/.test(c));
-  const hintAt60pct = Math.floor(room.roundDuration * 0.4); // after 40% elapsed => 60% left
-  const hintAt30pct = Math.floor(room.roundDuration * 0.7); // after 70% elapsed => 30% left
+  // Hint schedule: Hint 1 at 50% time remaining, Hint 2 at 25% time remaining
+  const hint1Time = Math.floor(room.roundDuration * 0.50); // 50% time left
+  const hint2Time = Math.floor(room.roundDuration * 0.25); // 25% time left
   let hintsFired = 0;
 
   function revealHintLetter() {
@@ -840,9 +972,7 @@ function startDrawing(room, word) {
     wordChars.forEach((c, i) => {
       if (/[a-zA-Z]/.test(c) && room._revealedArr[i] === '_') hiddenPositions.push(i);
     });
-    if (hiddenPositions.length === 0) return;
-    // Keep at least 1 letter hidden
-    if (hiddenPositions.length <= 1) return;
+    if (hiddenPositions.length <= 1) return; // Keep at least 1 letter hidden
     const pick = hiddenPositions[Math.floor(Math.random() * hiddenPositions.length)];
     room._revealedArr[pick] = wordChars[pick];
     const hintMask = room._revealedArr.join('');
@@ -859,12 +989,12 @@ function startDrawing(room, word) {
     room.timer--;
     io.to(`room:${room.id}`).emit("timer-tick", room.timer);
 
-    // Reveal hints at thresholds
-    if (hintsFired === 0 && room.timer <= hintAt60pct) {
-      hintsFired++;
+    // Reveal hints at exact thresholds
+    if (hintsFired === 0 && room.timer <= hint1Time) {
+      hintsFired = 1;
       revealHintLetter();
-    } else if (hintsFired === 1 && room.timer <= hintAt30pct) {
-      hintsFired++;
+    } else if (hintsFired === 1 && room.timer <= hint2Time) {
+      hintsFired = 2;
       revealHintLetter();
     }
     

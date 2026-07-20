@@ -46,6 +46,7 @@ class Room {
     this.bannedSocketIds = new Set();
     this.kickVotes = {};
     this.hintRevealed = 0; // Number of letters revealed
+    this.usedWords = new Set(); // Track used words in current match
     this.createdAt = Date.now();
     this.lastActivity = Date.now();
   }

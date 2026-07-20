@@ -246,9 +246,9 @@ class GameEngine {
       dateTime: new Date().toISOString()
     });
 
-    // Start drawing timer with hints
-    const hintAt60pct = Math.floor(this.room.roundDuration * 0.6);
-    const hintAt30pct = Math.floor(this.room.roundDuration * 0.3);
+    // Start drawing timer with hints (Hint 1 at 50% time left, Hint 2 at 25% time left)
+    const hint1Time = Math.floor(this.room.roundDuration * 0.50);
+    const hint2Time = Math.floor(this.room.roundDuration * 0.25);
     let hintsFired = 0;
 
     this.room.clearTimers();
@@ -258,11 +258,11 @@ class GameEngine {
 
       // Reveal hints at thresholds if enabled
       if (this.room.enableHints) {
-        if (hintsFired === 0 && this.room.timer <= hintAt60pct) {
-          hintsFired++;
+        if (hintsFired === 0 && this.room.timer <= hint1Time) {
+          hintsFired = 1;
           this.revealHint();
-        } else if (hintsFired === 1 && this.room.timer <= hintAt30pct) {
-          hintsFired++;
+        } else if (hintsFired === 1 && this.room.timer <= hint2Time) {
+          hintsFired = 2;
           this.revealHint();
         }
       }
@@ -322,11 +322,13 @@ class GameEngine {
     }
 
     // Normalize guess and word
-    const normalizedGuess = guess.toLowerCase().trim().replace(/[^a-z0-9]/g, '');
-    const normalizedWord = this.room.currentWord.toLowerCase().replace(/[^a-z0-9]/g, '');
+    const normGuess = guess.toLowerCase().trim();
+    const normWord = this.room.currentWord.toLowerCase().trim();
+    const strippedGuess = normGuess.replace(/[\s\-_]/g, '');
+    const strippedWord = normWord.replace(/[\s\-_]/g, '');
 
     // Check if correct
-    if (normalizedGuess === normalizedWord) {
+    if (normGuess === normWord || (strippedGuess.length > 0 && strippedGuess === strippedWord)) {
       player.hasGuessed = true;
 
       // Award points based on time remaining
@@ -365,10 +367,21 @@ class GameEngine {
       return { correct: true };
     }
 
-    // Check for close guess
-    const editDistance = this.getEditDistance(normalizedGuess, normalizedWord);
-    if (editDistance === 1) {
-      return { correct: false, close: true };
+    // Check for industry-standard close guess
+    if (strippedGuess.length >= 3 && strippedGuess.length >= Math.floor(strippedWord.length * 0.45)) {
+      const editDistance = this.getEditDistance(strippedGuess, strippedWord);
+      const wordLen = strippedWord.length;
+      let isClose = false;
+
+      if (wordLen <= 7) {
+        isClose = editDistance === 1;
+      } else {
+        isClose = editDistance === 1 || (editDistance === 2 && (editDistance / wordLen) <= 0.25);
+      }
+
+      if (isClose) {
+        return { correct: false, close: true };
+      }
     }
 
     return { correct: false };
