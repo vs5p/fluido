@@ -1,13 +1,5 @@
 // Game Engine - Handles game logic, state transitions, and scoring
-const WORDS = [
-  "apple", "banana", "sun", "cloud", "car", "house", "tree", "dog", "cat", "fish",
-  "star", "moon", "boat", "plane", "smile", "flower", "heart", "book", "cup", "hat",
-  "guitar", "phone", "clock", "chair", "table", "key", "door", "window", "shoe", "socks",
-  "pizza", "burger", "cookie", "cake", "ice cream", "spider", "snake", "bird", "rabbit", "lion",
-  "rocket", "alien", "robot", "castle", "bridge", "mountain", "river", "beach", "drum",
-  "train", "bicycle", "helicopter", "volcano", "pyramid", "wizard", "superman", "batman", "dinosaur", "monster",
-  "hamburger", "pencil", "dolphin", "elephant", "giraffe", "monkey", "octopus", "penguin", "kangaroo", "butterfly"
-];
+const { WORDS, getWordChoices } = require('./words');
 
 class GameEngine {
   constructor(room, io, db) {
@@ -160,22 +152,11 @@ class GameEngine {
 
     // Get 3 random words
     try {
-      const res = await fetch("https://random-word-api.herokuapp.com/word?number=3");
-      if (res.ok) {
-        this.room.wordChoices = await res.json();
-      } else {
-        throw new Error("API failed");
-      }
+      if (!this.room.usedWords) this.room.usedWords = new Set();
+      this.room.wordChoices = getWordChoices(this.room.difficulty, 3, this.room.usedWords, this.room.customWords);
     } catch (err) {
-      // Fallback to local words
-      const shuffled = [...WORDS].sort(() => 0.5 - Math.random());
-      this.room.wordChoices = shuffled.slice(0, 3);
-    }
-
-    // Add custom words if available
-    if (this.room.customWords.length > 0) {
-      const customChoice = this.room.customWords[Math.floor(Math.random() * this.room.customWords.length)];
-      this.room.wordChoices[2] = customChoice; // Replace third word
+      if (!this.room.usedWords) this.room.usedWords = new Set();
+      this.room.wordChoices = getWordChoices(this.room.difficulty, 3, this.room.usedWords, this.room.customWords);
     }
 
     this.room.timer = this.room.wordSelectionDuration;

@@ -31,37 +31,8 @@ const io = require("socket.io")(server, {
   }
 });
 
-// Expanded curated word list (250+ drawing-friendly items)
-const RAW_WORDS = [
-  "apple", "banana", "sun", "cloud", "car", "house", "tree", "dog", "cat", "fish",
-  "star", "moon", "boat", "plane", "smile", "flower", "heart", "book", "cup", "hat",
-  "guitar", "phone", "clock", "chair", "table", "key", "door", "window", "shoe", "socks",
-  "pizza", "burger", "cookie", "cake", "ice cream", "spider", "snake", "bird", "rabbit", "lion",
-  "rocket", "alien", "robot", "castle", "bridge", "mountain", "river", "beach", "drum",
-  "train", "bicycle", "helicopter", "volcano", "pyramid", "wizard", "superman", "batman", "dinosaur", "monster",
-  "hamburger", "pencil", "dolphin", "elephant", "giraffe", "monkey", "octopus", "penguin", "kangaroo", "butterfly",
-  "anchor", "anvil", "backpack", "balloon", "battery", "bed", "bell", "blanket", "bottle", "broom",
-  "bucket", "button", "cactus", "camera", "candle", "carriage", "chain", "chest",
-  "compass", "crown", "diamond", "dice", "envelope", "feather", "flag",
-  "flashlight", "fork", "ghost", "glasses", "glove", "hammer", "helmet", "horn", "ladder",
-  "lamp", "lantern", "laptop", "lemon", "letter", "lightbulb", "lighthouse", "lock", "magnet", "map",
-  "mirror", "mushroom", "needle", "nest", "newspaper", "notebook", "padlock", "paint", "paintbrush", "passport",
-  "pillow", "ring", "scissors", "shield", "shovel", "skull", "soap",
-  "spoon", "statue", "sword", "telescope", "tent", "ticket", "toothbrush", "torch", "treasure", "trophy",
-  "umbrella", "violin", "wallet", "watch", "wheel", "windmill", "wrench",
-  "avocado", "bacon", "bagel", "bread", "broccoli", "candy", "carrot", "cheese", "cherry", "chocolate",
-  "coffee", "donut", "egg", "grapes", "hotdog", "lollipop", "milk", "onion", "pancake", "peach",
-  "peanut", "pear", "pineapple", "popcorn", "potato", "pumpkin", "sandwich", "strawberry", "sushi", "taco", "tea", "watermelon",
-  "cave", "comet", "desert", "earth", "fire", "forest", "galaxy", "island", "jungle", "lightning",
-  "meteor", "ocean", "planet", "rain", "rainbow", "satellite", "sky", "snow", "snowflake", "space",
-  "storm", "sunflower", "tornado", "waterfall", "wave",
-  "ambulance", "astronaut", "automobile", "bus", "captain", "clown", "cowboy", "detective", "dragon", "driver",
-  "firefighter", "ninja", "nurse", "pilot", "pirate", "police", "princess", "queen", "racer", "samurai",
-  "ship", "submarine", "superhero", "tractor", "truck", "vampire", "witch", "zombie"
-];
-
-// Deduplicate words list
-const WORDS = Array.from(new Set(RAW_WORDS));
+// Import 1,400+ curated word pool & difficulty selection engine
+const { WORDS, getWordChoices } = require("./words");
 
 /**
  * Industry-Standard Damerau-Levenshtein Distance Algorithm
@@ -903,15 +874,8 @@ async function startWordSelection(room) {
     room.usedWords = new Set();
   }
 
-  // Filter available words to avoid repeating used words in this match
-  let availableWords = WORDS.filter(w => !room.usedWords.has(w.toLowerCase()));
-  if (availableWords.length < 3) {
-    room.usedWords.clear(); // Reset used words set if full dictionary used
-    availableWords = [...WORDS];
-  }
-
-  const shuffled = [...availableWords].sort(() => 0.5 - Math.random());
-  room.wordChoices = shuffled.slice(0, 3);
+  // Get 3 random curated words matching room difficulty & excluding previously used words
+  room.wordChoices = getWordChoices(room.difficulty || 'medium', 3, room.usedWords, room.customWords);
   room.timer = room.wordSelectionDuration;
 
   io.to(`room:${room.id}`).emit("room:updated", room.toDetailedJSON());
