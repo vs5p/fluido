@@ -61,7 +61,7 @@ function RoomPage() {
         }, 2000);
       }
     });
-  }, [authReady, isConnected, userProfile, id, isInRoom, currentRoom, setCurrentRoom, setIsInRoom, navigate]);
+  }, [authReady, isConnected, userProfile?.id, id, isInRoom, currentRoom?.code]);
 
   if (!authReady) {
     return (

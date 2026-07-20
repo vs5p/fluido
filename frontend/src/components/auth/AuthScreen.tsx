@@ -90,7 +90,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
     return () => {
       if (typeof unsub === "function") unsub();
     };
-  }, [setUser, navigate, redirectOnSuccess]);
+  }, []); // Run once on mount to subscribe to auth state
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
