@@ -52,6 +52,8 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
     try {
       (window as any).google.accounts.id.initialize({
         client_id: googleClientId,
+        auto_select: false,
+        use_fedcm_for_prompt: false,
         callback: (response: any) => {
           if (typeof window !== "undefined") {
             localStorage.setItem('orbitdraw-auth-provider', 'google');

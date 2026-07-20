@@ -3,8 +3,21 @@
 import { io, type Socket } from "socket.io-client";
 import type { StrokeEvent } from "./canvas";
 
-const SOCKET_URL = (import.meta.env.VITE_SOCKET_URL as string | undefined) || 
-  (typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "http://localhost:4000");
+function getCleanSocketUrl(): string {
+  let url = (import.meta.env.VITE_SOCKET_URL as string | undefined)?.trim() || "";
+  if (url.startsWith('"') || url.startsWith("'")) {
+    url = url.slice(1, -1).trim();
+  }
+  if (!url) {
+    url = typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "http://localhost:4000";
+  }
+  if (typeof window !== "undefined" && window.location.protocol === "https:" && url.startsWith("http://")) {
+    url = url.replace("http://", "https://");
+  }
+  return url.replace(/\/+$/, "");
+}
+
+const SOCKET_URL = getCleanSocketUrl();
 
 export type GameState = 'waiting' | 'starting' | 'word_selection' | 'drawing' | 'round_end' | 'game_end';
 
