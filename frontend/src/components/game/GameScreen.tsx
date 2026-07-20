@@ -274,7 +274,7 @@ function WaitingOverlay({ players, isHost, roomCode }: { players: any[]; isHost:
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", pointerEvents: "auto" }}
     >
       <div className="text-center max-w-md w-full px-6">
         <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }}>
@@ -323,7 +323,7 @@ function CountdownOverlay({ count, label }: { count: number; label: string }) {
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", pointerEvents: "auto" }}
     >
       <div className="text-center">
         <p className="text-secondary-mac text-[16px] mb-4">{label}</p>
@@ -350,7 +350,7 @@ function WordChoiceOverlay({ choices, timer, onPick }: { choices: string[]; time
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)", pointerEvents: "auto" }}
     >
       <div className="text-center max-w-lg w-full px-6">
         <p className="text-secondary-mac text-[14px] mb-2">Choose a word to draw</p>
@@ -379,7 +379,7 @@ function WaitingForDrawerOverlay({ drawerName }: { drawerName: string }) {
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(6px)" }}
+      style={{ background: "rgba(0,0,0,0.60)", backdropFilter: "blur(6px)", pointerEvents: "auto" }}
     >
       <div className="text-center">
         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="text-4xl mb-4">✏️</motion.div>
@@ -395,7 +395,7 @@ function RoundResultsOverlay({ data, timer }: { data: any; timer: number }) {
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)" }}
+      style={{ background: "rgba(0,0,0,0.80)", backdropFilter: "blur(8px)", pointerEvents: "auto" }}
     >
       <div className="text-center max-w-md w-full px-6">
         <div className="text-4xl mb-3">🎯</div>
@@ -442,7 +442,7 @@ function GameOverOverlay({ data, onLeave, isHost }: { data: any; onLeave: () => 
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="absolute inset-0 z-20 flex flex-col items-center justify-center p-6"
-      style={{ background: "rgba(10,10,12,0.95)", backdropFilter: "blur(16px)" }}
+      style={{ background: "rgba(10,10,12,0.95)", backdropFilter: "blur(16px)", pointerEvents: "auto" }}
     >
       <div className="max-w-2xl w-full flex flex-col items-center">
         {/* Title */}
