@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { IconBolt, IconCode } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -140,10 +140,8 @@ export function HomeScreen() {
         </motion.div>
       </div>
 
-      <AnimatePresence>
-        {showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} />}
-        {showJoinModal && <JoinRoomModal onClose={() => setShowJoinModal(false)} />}
-      </AnimatePresence>
+      {showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} />}
+      {showJoinModal && <JoinRoomModal onClose={() => setShowJoinModal(false)} />}
     </div>
   );
 }
