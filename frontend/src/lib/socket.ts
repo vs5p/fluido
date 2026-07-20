@@ -8,6 +8,10 @@ function getCleanSocketUrl(): string {
   if (url.startsWith('"') || url.startsWith("'")) {
     url = url.slice(1, -1).trim();
   }
+  const isVercelHost = typeof window !== "undefined" && window.location.hostname.endsWith("vercel.app");
+  if (!url || isVercelHost) {
+    url = url || "https://fluido-vjph.onrender.com";
+  }
   if (!url) {
     url = typeof window !== "undefined" ? `${window.location.protocol}//${window.location.host}` : "http://localhost:4000";
   }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconBrandGoogleFilled,
   IconMail,
@@ -27,6 +27,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
   const [err, setErr] = useState<string | null>(null);
 
   const [isGoogleSdkLoaded, setIsGoogleSdkLoaded] = useState(false);
+  const googleRenderedRef = useRef(false);
   const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
   // Load Google GSI SDK
@@ -47,7 +48,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
 
   // Initialize and render Google Sign-In button
   useEffect(() => {
-    if (!isGoogleSdkLoaded || !(window as any).google || !googleClientId) return;
+    if (!isGoogleSdkLoaded || !(window as any).google || !googleClientId || googleRenderedRef.current) return;
 
     try {
       (window as any).google.accounts.id.initialize({
@@ -65,6 +66,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
 
       const btnContainer = document.getElementById('google-signin-btn');
       if (btnContainer) {
+        btnContainer.innerHTML = '';
         (window as any).google.accounts.id.renderButton(
           btnContainer,
           {
@@ -75,6 +77,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
             width: 356,
           }
         );
+        googleRenderedRef.current = true;
       }
     } catch (err) {
       console.error('Google Sign-In init error:', err);

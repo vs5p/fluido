@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Input Test - Fluido Debug</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1c1c1e;
+            color: white;
+            padding: 20px;
+            touch-action: manipulation;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #2c2c2e;
+            border-radius: 12px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+        
+        h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #0a84ff;
+        }
+        
+        input, textarea {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            font-size: 16px;
+            background: #3a3a3c;
+            border: 1px solid #48484a;
+            border-radius: 8px;
+            color: white;
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+        }
+        
+        input:focus, textarea:focus {
+            outline: 2px solid #0a84ff;
+            border-color: #0a84ff;
+        }
+        
+        button {
+            padding: 12px 24px;
+            font-size: 16px;
+            background: #0a84ff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        
+        .status {
+            padding: 10px;
+            margin-top: 10px;
+            background: #30d158;
+            color: white;
+            border-radius: 6px;
+            display: none;
+        }
+        
+        .error {
+            background: #ff453a;
+        }
+        
+        .log {
+            margin-top: 10px;
+            padding: 10px;
+            background: #000;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔬 Input Freeze Diagnostic Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Basic Input</h2>
+        <input type="text" id="test1" placeholder="Type here - does it work?">
+        <div id="status1" class="status">✅ Input works!</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Email Input</h2>
+        <input type="email" id="test2" placeholder="email@example.com">
+        <div id="status2" class="status">✅ Email input works!</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 3: Textarea</h2>
+        <textarea id="test3" rows="4" placeholder="Type a longer message here..."></textarea>
+        <div id="status3" class="status">✅ Textarea works!</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 4: Input with Form</h2>
+        <form id="testForm">
+            <input type="text" id="test4" placeholder="Form input">
+            <button type="submit">Submit</button>
+        </form>
+        <div id="status4" class="status">✅ Form submission works!</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Event Log</h2>
+        <div id="eventLog" class="log">Waiting for events...</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Device Info</h2>
+        <div class="log" id="deviceInfo"></div>
+    </div>
+    
+    <script>
+        const log = (msg) => {
+            const logEl = document.getElementById('eventLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logEl.innerHTML = `[${timestamp}] ${msg}<br>` + logEl.innerHTML;
+        };
+        
+        // Device info
+        const deviceInfo = document.getElementById('deviceInfo');
+        deviceInfo.innerHTML = `
+            User Agent: ${navigator.userAgent}<br>
+            Touch Support: ${('ontouchstart' in window) ? 'Yes' : 'No'}<br>
+            Pointer Events: ${('PointerEvent' in window) ? 'Yes' : 'No'}<br>
+            Screen: ${window.screen.width}x${window.screen.height}<br>
+            Viewport: ${window.innerWidth}x${window.innerHeight}<br>
+            Device Pixel Ratio: ${window.devicePixelRatio}
+        `;
+        
+        // Test 1
+        const test1 = document.getElementById('test1');
+        test1.addEventListener('focus', () => {
+            log('✅ Test 1: Input FOCUSED');
+            document.getElementById('status1').style.display = 'block';
+        });
+        test1.addEventListener('input', (e) => {
+            log(`✅ Test 1: Input value: "${e.target.value}"`);
+        });
+        test1.addEventListener('blur', () => {
+            log('⚠️ Test 1: Input BLURRED');
+        });
+        
+        // Test 2
+        const test2 = document.getElementById('test2');
+        test2.addEventListener('focus', () => {
+            log('✅ Test 2: Email input FOCUSED');
+            document.getElementById('status2').style.display = 'block';
+        });
+        test2.addEventListener('input', (e) => {
+            log(`✅ Test 2: Email value: "${e.target.value}"`);
+        });
+        
+        // Test 3
+        const test3 = document.getElementById('test3');
+        test3.addEventListener('focus', () => {
+            log('✅ Test 3: Textarea FOCUSED');
+            document.getElementById('status3').style.display = 'block';
+        });
+        test3.addEventListener('input', (e) => {
+            log(`✅ Test 3: Textarea value length: ${e.target.value.length}`);
+        });
+        
+        // Test 4
+        const testForm = document.getElementById('testForm');
+        const test4 = document.getElementById('test4');
+        test4.addEventListener('focus', () => {
+            log('✅ Test 4: Form input FOCUSED');
+        });
+        testForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            log('✅ Test 4: Form SUBMITTED');
+            document.getElementById('status4').style.display = 'block';
+        });
+        
+        // Global error catcher
+        window.addEventListener('error', (e) => {
+            log(`❌ ERROR: ${e.message}`);
+        });
+        
+        // Touch/click event logging
+        document.addEventListener('touchstart', (e) => {
+            log(`👆 Touch started on: ${e.target.tagName}${e.target.id ? '#' + e.target.id : ''}`);
+        }, { passive: true });
+        
+        document.addEventListener('click', (e) => {
+            log(`🖱️ Click on: ${e.target.tagName}${e.target.id ? '#' + e.target.id : ''}`);
+        });
+        
+        // Check if page freezes
+        let lastHeartbeat = Date.now();
+        setInterval(() => {
+            const now = Date.now();
+            const diff = now - lastHeartbeat;
+            if (diff > 2000) {
+                log(`⚠️ WARNING: Possible freeze detected! Gap: ${diff}ms`);
+            }
+            lastHeartbeat = now;
+        }, 1000);
+        
+        log('🚀 Test page loaded successfully');
+    </script>
+</body>
+</html>

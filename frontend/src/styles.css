@@ -128,6 +128,11 @@
     text-rendering: optimizeLegibility;
   }
 
+  /* Force all inputs to be interactive */
+  input, textarea, select, button {
+    pointer-events: auto;
+  }
+
   h1, h2, h3, h4 {
     letter-spacing: -0.02em;
     font-weight: 500;
@@ -203,6 +208,9 @@
   outline: none;
   width: 100%;
   transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
 }
 .mac-input::placeholder { color: var(--text-tertiary); }
 .mac-input:focus {
@@ -244,10 +252,10 @@
 }
 
 .anim-fade-in-up {
-  animation: fade-in-up 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation: fade-in-up 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .anim-fade-in-scale {
-  animation: fade-in-scale 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+  animation: fade-in-scale 0.3s cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
 
