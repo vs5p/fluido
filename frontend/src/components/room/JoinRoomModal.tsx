@@ -168,9 +168,11 @@ export function JoinRoomModal({ onClose }: Props) {
         {mode === "code" && (
           <div className="space-y-4">
             <div>
-              <Label className="text-white/70">Room Code</Label>
+              <Label htmlFor="join-room-code" className="text-white/70">Room Code</Label>
               <div className="flex gap-2 mt-2">
                 <Input
+                  id="join-room-code"
+                  name="roomCode"
                   placeholder="e.g., ABC123"
                   value={roomCode}
                   onChange={(e) => setRoomCode(e.target.value.toUpperCase())}

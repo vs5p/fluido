@@ -79,7 +79,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1, interactive-widget=resizes-content, viewport-fit=cover" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
       { title: "Fluido — draw, guess, win" },
       { name: "description", content: "A real-time multiplayer drawing and guessing game with a calm, macOS-inspired interface." },
       { name: "author", content: "Fluido" },

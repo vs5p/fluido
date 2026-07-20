@@ -98,8 +98,10 @@ export function CreateRoomModal({ onClose }: Props) {
 
         <div className="space-y-4">
           <div>
-            <Label className="text-white/70">Room Name</Label>
+            <Label htmlFor="create-room-name" className="text-white/70">Room Name</Label>
             <Input
+              id="create-room-name"
+              name="roomName"
               placeholder="e.g., Art Masters"
               value={roomName}
               onChange={(e) => setRoomName(e.target.value)}

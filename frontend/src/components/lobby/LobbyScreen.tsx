@@ -109,9 +109,11 @@ export function LobbyScreen() {
               Create room
             </button>
 
-            <div className="mac-label-caps mb-2">Join a room</div>
+            <label htmlFor="lobby-join-code" className="mac-label-caps mb-2 block">Join a room</label>
             <form onSubmit={handleJoin} className="flex gap-2">
               <input
+                id="lobby-join-code"
+                name="joinCode"
                 aria-label="Room code"
                 value={joinCode}
                 onChange={(e) =>

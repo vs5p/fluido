@@ -1,4 +1,4 @@
-@import "tailwindcss" source(none);
+@import "tailwindcss";
 @source "../src";
 @import "tw-animate-css";
 
@@ -117,7 +117,9 @@
   }
 
   html, body {
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
+    touch-action: manipulation;
     background: var(--bg-base);
     color: var(--text-primary);
     font-family: var(--font-sans);

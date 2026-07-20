@@ -96,8 +96,8 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
 
   return (
     <div
-      className="flex items-center justify-center p-4"
-      style={{ height: "100dvh", background: "var(--bg-base)" }}
+      className="flex items-center justify-center p-4 min-h-screen"
+      style={{ background: "var(--bg-base)" }}
     >
       <div className="mac-panel w-full max-w-[420px] overflow-hidden anim-fade-in-scale">
         <div
@@ -158,12 +158,15 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
           <form onSubmit={handleEmail} className="space-y-2.5">
             {mode === "signup" && (
               <div className="relative">
+                <label htmlFor="auth-nickname" className="sr-only">Nickname</label>
                 <IconUser
                   size={14}
                   className="absolute left-3 top-1/2 -translate-y-1/2"
                   style={{ color: "var(--text-tertiary)" }}
                 />
                 <input
+                  id="auth-nickname"
+                  name="nickname"
                   type="text"
                   required
                   placeholder="Nickname"
@@ -175,12 +178,15 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
               </div>
             )}
             <div className="relative">
+              <label htmlFor="auth-email" className="sr-only">Email address</label>
               <IconMail
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2"
                 style={{ color: "var(--text-tertiary)" }}
               />
               <input
+                id="auth-email"
+                name="email"
                 type="email"
                 required
                 autoComplete="email"
@@ -192,12 +198,15 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
               />
             </div>
             <div className="relative">
+              <label htmlFor="auth-password" className="sr-only">Password</label>
               <IconLockFilled
                 size={14}
                 className="absolute left-3 top-1/2 -translate-y-1/2"
                 style={{ color: "var(--text-tertiary)" }}
               />
               <input
+                id="auth-password"
+                name="password"
                 type="password"
                 required
                 minLength={6}

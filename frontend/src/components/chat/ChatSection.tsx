@@ -137,6 +137,8 @@ export function ChatSection({ isDrawer }: { isDrawer: boolean }) {
         }}
       >
         <input
+          id="chat-input"
+          name="chatMessage"
           aria-label="Type your guess"
           value={text}
           onChange={(e) => setText(e.target.value)}
