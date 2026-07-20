@@ -78,7 +78,7 @@ export function CreateRoomModal({ onClose }: Props) {
   return (
     // Plain div backdrop — AnimatePresence in parent handles enter/exit
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
       onClick={() => onClose?.()}
     >
       {/* Plain div modal box — no motion here so keystrokes don't re-trigger animations */}

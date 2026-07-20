@@ -1,7 +1,11 @@
 /**
  * useSocket – initialises the Socket.io connection once and wires every
- * server → store update in one place.  Import this in the top-level App or
- * route component and it will stay alive for the session.
+ * server → store update in one place.
+ *
+ * CRITICAL FIX: Uses `useGame.getState()` and `useRoom.getState()` instead
+ * of hook-based selectors. This means RootComponent has ZERO Zustand
+ * subscriptions, so socket events never trigger component re-renders.
+ * All state updates go directly to the store.
  */
 import { useEffect } from "react";
 import { useGame } from "@/store/gameStore";
@@ -44,74 +48,57 @@ import {
 } from "@/lib/socket";
 import { onAuth } from "@/lib/firebase";
 
+// Guard to prevent double-init from React StrictMode
+let socketInitialized = false;
+
 export function useSocket() {
-  const setConnected      = useGame((s) => s.setConnected);
-  const setUser           = useGame((s) => s.setUser);
-  const setUserProfile    = useGame((s) => s.setUserProfile);
-  const setAuthReady      = useGame((s) => s.setAuthReady);
-  const setGameState      = useGame((s) => s.setGameState);
-  const setRounds         = useGame((s) => s.setRounds);
-  const setCurrentDrawer  = useGame((s) => s.setCurrentDrawer);
-  const setTimer          = useGame((s) => s.setTimer);
-  const setStartCountdown = useGame((s) => s.setStartCountdown);
-  const setWordChoices    = useGame((s) => s.setWordChoices);
-  const setCurrentWord    = useGame((s) => s.setCurrentWord);
-  const setMaskedWord     = useGame((s) => s.setMaskedWord);
-  const setPlayers        = useGame((s) => s.setPlayers);
-  const pushMessage       = useGame((s) => s.pushMessage);
-  const setLeaderboard    = useGame((s) => s.setLeaderboard);
-  const setRoundResults   = useGame((s) => s.setRoundResults);
-  const setGameOverData   = useGame((s) => s.setGameOverData);
-  const setRoomInfo       = useGame((s) => s.setRoomInfo);
-  const setDrawerDevice   = useGame((s) => s.setDrawerDevice);
-
-  const setCurrentRoom    = useRoom((s) => s.setCurrentRoom);
-  const setIsHost         = useRoom((s) => s.setIsHost);
-  const setIsSpectator    = useRoom((s) => s.setIsSpectator);
-  const setPublicRooms    = useRoom((s) => s.setPublicRooms);
-  const leaveCurrentRoom  = useRoom((s) => s.leaveCurrentRoom);
-  const setRoomError      = useRoom((s) => s.setRoomError);
-  const updateRoomProp    = useRoom((s) => s.updateRoomProperty);
-
   useEffect(() => {
+    // Prevent StrictMode double-initialization
+    if (socketInitialized) return;
+    socketInitialized = true;
+
     initSocket();
     connectSocket();
 
     const unsubs: Array<() => void> = [];
 
+    // Helper: get store setters directly (no React subscriptions)
+    const game = () => useGame.getState();
+    const room = () => useRoom.getState();
+
     // ── Connection ──────────────────────────────────────────────────────────
-    unsubs.push(onConnect(() => setConnected(true)));
-    unsubs.push(onDisconnect(() => setConnected(false)));
+    unsubs.push(onConnect(() => game().setConnected(true)));
+    unsubs.push(onDisconnect(() => game().setConnected(false)));
 
     // ── Auth ────────────────────────────────────────────────────────────────
     unsubs.push(onAuthSuccess((profile) => {
-      setUserProfile(profile);
+      game().setUserProfile(profile);
       if (typeof window !== "undefined") {
         localStorage.setItem('orbitdraw-user-id', profile.id);
       }
-      setUser({
+      game().setUser({
         uid: profile.id,
         displayName: profile.name,
         email: profile.email || null,
         photoURL: profile.picture || null,
       } as any);
       requestLeaderboard();
-      setAuthReady(true);
+      game().setAuthReady(true);
     }));
 
     unsubs.push(onAuthError((msg) => {
-      pushMessage({ name: "System", message: `Auth error: ${msg}`, isSystem: true });
-      setAuthReady(true);
+      game().pushMessage({ name: "System", message: `Auth error: ${msg}`, isSystem: true });
+      game().setAuthReady(true);
     }));
 
     unsubs.push(onAuthExpired(() => {
-      setUserProfile(null);
-      setUser(null);
+      game().setUserProfile(null);
+      game().setUser(null);
       if (typeof window !== "undefined") {
         localStorage.removeItem('orbitdraw-user-id');
         localStorage.removeItem('orbitdraw-auth-provider');
       }
-      setAuthReady(true);
+      game().setAuthReady(true);
     }));
 
     const socket = getSocket();
@@ -124,20 +111,20 @@ export function useSocket() {
       socket?.emit("auth-resume", savedUserId);
       
       fallbackTimeout = setTimeout(() => {
-        setAuthReady(true);
+        game().setAuthReady(true);
       }, 5000);
     }
 
     const unsubAuth = onAuth(async (u) => {
       if (!u) {
         if (savedUserId) return;
-        setUser(null);
-        setUserProfile(null);
-        setAuthReady(true);
+        game().setUser(null);
+        game().setUserProfile(null);
+        game().setAuthReady(true);
         return;
       }
 
-      setUser(u);
+      game().setUser(u);
       
       if (!savedUserId) {
         connectSocket();
@@ -178,106 +165,104 @@ export function useSocket() {
     }
 
     // ── Room ────────────────────────────────────────────────────────────────
-    unsubs.push(onRoomJoined(({ room, asHost, asSpectator, reconnected }) => {
-      setCurrentRoom(room as Room);
-      setIsHost(!!asHost);
-      setIsSpectator(!!asSpectator);
-      setRoomInfo(room.code, room.name);
+    unsubs.push(onRoomJoined(({ room: r, asHost, asSpectator, reconnected }) => {
+      room().setCurrentRoom(r as Room);
+      room().setIsHost(!!asHost);
+      room().setIsSpectator(!!asSpectator);
+      game().setRoomInfo(r.code, r.name);
       // seed game state from room
-      if (room.gameState) setGameState(room.gameState as any);
-      if (room.maxRounds)  setRounds(room.currentRound || 0, room.maxRounds);
-      if (room.players)    setPlayers(room.players as any);
-      if (room.drawerDevice) setDrawerDevice(room.drawerDevice as any);
+      if (r.gameState) game().setGameState(r.gameState as any);
+      if (r.maxRounds)  game().setRounds(r.currentRound || 0, r.maxRounds);
+      if (r.players)    game().setPlayers(r.players as any);
+      if ((r as any).drawerDevice) game().setDrawerDevice((r as any).drawerDevice);
       
       if (reconnected) {
-        pushMessage({ name: "System", message: `⚡ Reconnected & restored to match!`, isSystem: true });
+        game().pushMessage({ name: "System", message: `⚡ Reconnected & restored to match!`, isSystem: true });
       } else {
-        pushMessage({ name: "System", message: `Joined room ${room.name} (${room.code})`, isSystem: true });
+        game().pushMessage({ name: "System", message: `Joined room ${r.name} (${r.code})`, isSystem: true });
       }
     }));
     unsubs.push(onRoomError((msg) => {
-      setRoomError(msg);
-      pushMessage({ name: "System", message: `Room error: ${msg}`, isSystem: true });
+      room().setRoomError(msg);
+      game().pushMessage({ name: "System", message: `Room error: ${msg}`, isSystem: true });
     }));
-    unsubs.push(onRoomPublicList((rooms) => setPublicRooms(rooms as Room[])));
+    unsubs.push(onRoomPublicList((rooms) => room().setPublicRooms(rooms as Room[])));
     unsubs.push(onRoomPlayerJoined(({ player }) =>
-      pushMessage({ name: "System", message: `${(player as any).name} joined the room.`, isSystem: true })
+      game().pushMessage({ name: "System", message: `${(player as any).name} joined the room.`, isSystem: true })
     ));
     unsubs.push(onRoomPlayerLeft(({ player }) =>
-      pushMessage({ name: "System", message: `${(player as any).name} left the room.`, isSystem: true })
+      game().pushMessage({ name: "System", message: `${(player as any).name} left the room.`, isSystem: true })
     ));
     unsubs.push(onRoomHostChanged(({ newHostId }) =>
-      updateRoomProp({ hostId: newHostId })
+      room().updateRoomProperty({ hostId: newHostId })
     ));
     unsubs.push(onRoomUpdated((data) => {
-      updateRoomProp(data as any);
+      room().updateRoomProperty(data as any);
       if (data.players) {
-        setPlayers(data.players as any);
+        game().setPlayers(data.players as any);
       }
       if (data.gameState) {
-        setGameState(data.gameState as any);
-        // Clear game over overlay when host resets or starts a new game
+        game().setGameState(data.gameState as any);
         if (data.gameState === 'waiting' || data.gameState === 'starting') {
-          setGameOverData(null);
+          game().setGameOverData(null);
         }
         if (data.gameState === 'waiting') {
-          setRoundResults(null);
-          setWordChoices([]);
-          setCurrentWord("");
-          setMaskedWord("");
-          setStartCountdown(null);
+          game().setRoundResults(null);
+          game().setWordChoices([]);
+          game().setCurrentWord("");
+          game().setMaskedWord("");
+          game().setStartCountdown(null);
         }
       }
       if (data.currentRound !== undefined && data.maxRounds !== undefined) {
-        setRounds(data.currentRound, data.maxRounds);
+        game().setRounds(data.currentRound, data.maxRounds);
       }
       if (data.currentDrawer !== undefined) {
-        setCurrentDrawer(data.currentDrawer);
+        game().setCurrentDrawer(data.currentDrawer);
       }
       if (data.timer !== undefined) {
-        setTimer(data.timer);
+        game().setTimer(data.timer);
       }
       if (data.startCountdown !== undefined) {
-        setStartCountdown(data.startCountdown ?? null);
+        game().setStartCountdown(data.startCountdown ?? null);
       }
-      if (data.drawerDevice !== undefined) {
-        setDrawerDevice(data.drawerDevice as any);
+      if ((data as any).drawerDevice !== undefined) {
+        game().setDrawerDevice((data as any).drawerDevice);
       }
-      // Re-evaluate host status dynamically (socket ID may have changed)
       if (data.hostId) {
         const sock = getSocket();
-        if (sock) setIsHost(data.hostId === sock.id);
+        if (sock) room().setIsHost(data.hostId === sock.id);
       }
     }));
     unsubs.push(onKicked((msg) => {
-      leaveCurrentRoom();
-      pushMessage({ name: "System", message: `You were kicked: ${msg}`, isSystem: true });
+      room().leaveCurrentRoom();
+      game().pushMessage({ name: "System", message: `You were kicked: ${msg}`, isSystem: true });
     }));
 
     // ── Game state ──────────────────────────────────────────────────────────
     unsubs.push(onGameStateUpdate((state) => {
       const s = state as any;
-      setGameState(s.gameState as any);
-      setRounds(s.currentRound, s.maxRounds);
-      setCurrentDrawer(s.currentDrawer);
-      setTimer(s.timer);
-      setStartCountdown(s.startCountdown ?? null);
-      if (s.roomCode) setRoomInfo(s.roomCode, s.roomName ?? "");
+      game().setGameState(s.gameState as any);
+      game().setRounds(s.currentRound, s.maxRounds);
+      game().setCurrentDrawer(s.currentDrawer);
+      game().setTimer(s.timer);
+      game().setStartCountdown(s.startCountdown ?? null);
+      if (s.roomCode) game().setRoomInfo(s.roomCode, s.roomName ?? "");
     }));
-    unsubs.push(onPlayersUpdate((players) => setPlayers(players as any)));
-    unsubs.push(onTimerTick((t) => setTimer(t)));
-    unsubs.push(onCountdownTick(({ count }) => setStartCountdown(count)));
+    unsubs.push(onPlayersUpdate((players) => game().setPlayers(players as any)));
+    unsubs.push(onTimerTick((t) => game().setTimer(t)));
+    unsubs.push(onCountdownTick(({ count }) => game().setStartCountdown(count)));
 
     // ── Words ───────────────────────────────────────────────────────────────
-    unsubs.push(onWordChoices((words) => setWordChoices(words)));
+    unsubs.push(onWordChoices((words) => game().setWordChoices(words)));
     unsubs.push(onDrawerWord((word) => {
-      setCurrentWord(word);
-      setMaskedWord(word); // drawer sees full word
+      game().setCurrentWord(word);
+      game().setMaskedWord(word); // drawer sees full word
     }));
-    unsubs.push(onMaskedWord((masked) => setMaskedWord(masked)));
+    unsubs.push(onMaskedWord((masked) => game().setMaskedWord(masked)));
 
     // ── Chat ────────────────────────────────────────────────────────────────
-    unsubs.push(onChatMessage((m) => pushMessage({
+    unsubs.push(onChatMessage((m) => game().pushMessage({
       name: m.name,
       message: m.message,
       picture: m.picture,
@@ -285,24 +270,23 @@ export function useSocket() {
       dateTime: m.dateTime,
     })));
     unsubs.push(onCorrectGuess(({ name, points }) =>
-      pushMessage({ name, message: `guessed the word! (+${points} pts)`, isSystem: false, isCorrect: true })
+      game().pushMessage({ name, message: `guessed the word! (+${points} pts)`, isSystem: false, isCorrect: true })
     ));
 
     // ── Scoring / round ─────────────────────────────────────────────────────
     unsubs.push(onRoundResults((data) => {
-      setRoundResults(data);
-      setCurrentWord(data.word || "");
+      game().setRoundResults(data);
+      game().setCurrentWord(data.word || "");
     }));
     unsubs.push(onGameOver((data) => {
-      setGameOverData(data);
+      game().setGameOverData(data);
     }));
 
     // ── Leaderboard ─────────────────────────────────────────────────────────
-    unsubs.push(onLeaderboardUpdate((lb) => setLeaderboard(lb)));
+    unsubs.push(onLeaderboardUpdate((lb) => game().setLeaderboard(lb)));
 
     // ── Sounds ──────────────────────────────────────────────────────────────
     unsubs.push(onPlaySound((sound) => {
-      // Simple web audio implementation – silently fails if browser blocks it
       try {
         const ctx = new AudioContext();
         const osc = ctx.createOscillator();
@@ -317,6 +301,9 @@ export function useSocket() {
       } catch (_) {}
     }));
 
-    return () => unsubs.forEach((fn) => fn());
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => {
+      unsubs.forEach((fn) => fn());
+      socketInitialized = false;
+    };
+  }, []);
 }

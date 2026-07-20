@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import {
   IconBrandGoogleFilled,
   IconMail,
@@ -9,18 +8,17 @@ import {
 } from "@tabler/icons-react";
 import { TrafficLights } from "@/components/ui-mac/TrafficLights";
 import {
-  onAuth,
   signInGoogle,
   signInEmail,
   signUpEmail,
   firebaseConfigured,
 } from "@/lib/firebase";
-import { useGame } from "@/store/gameStore";
 import { connectSocket, authGoogle } from "@/lib/socket";
 
+// Auth state (user/authReady) is managed globally by useSocket in __root.tsx.
+// This component only handles the sign-in UI — no duplicate onAuth listener.
+
 export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: boolean }) {
-  const setUser = useGame((s) => s.setUser);
-  const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,16 +79,6 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
     }
   }, [isGoogleSdkLoaded, googleClientId]);
 
-  useEffect(() => {
-    const unsub = onAuth((u) => {
-      setUser(u);
-      if (u && redirectOnSuccess) navigate({ to: "/" });
-    });
-    return () => {
-      if (typeof unsub === "function") unsub();
-    };
-  }, []); // Run once on mount to subscribe to auth state
-
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
     setErr(null);
@@ -111,9 +99,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
       className="flex items-center justify-center p-4"
       style={{ height: "100dvh", background: "var(--bg-base)" }}
     >
-        <div
-        className="mac-panel w-full max-w-[420px] overflow-hidden anim-fade-in-scale"
-      >
+      <div className="mac-panel w-full max-w-[420px] overflow-hidden anim-fade-in-scale">
         <div
           className="flex items-center"
           style={{ borderBottom: "1px solid var(--separator)" }}
@@ -258,7 +244,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
             </p>
           )}
         </div>
-        </div>
+      </div>
     </div>
   );
 }
