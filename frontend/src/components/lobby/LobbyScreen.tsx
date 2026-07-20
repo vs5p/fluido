@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import {
   IconPlus,
   IconLogin2,
@@ -51,11 +50,8 @@ export function LobbyScreen() {
       className="flex items-center justify-center p-4"
       style={{ height: "100dvh", background: "var(--bg-base)" }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-        className="mac-panel w-full max-w-[860px] overflow-hidden"
+      <div
+        className="mac-panel w-full max-w-[860px] overflow-hidden anim-fade-in-up"
       >
         {/* Title bar */}
         <div
@@ -213,7 +209,7 @@ export function LobbyScreen() {
             </div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

@@ -224,3 +224,28 @@
 .text-primary-mac   { color: var(--text-primary); }
 .text-secondary-mac { color: var(--text-secondary); }
 .text-tertiary-mac  { color: var(--text-tertiary); }
+
+/* ============================================================
+   One-shot CSS entrance animations — use these instead of
+   Framer Motion `animate` props inside stateful components,
+   so re-renders from useState never re-trigger the animation.
+   ============================================================ */
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fade-in-scale {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.anim-fade-in-up {
+  animation: fade-in-up 0.25s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.anim-fade-in-scale {
+  animation: fade-in-scale 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+

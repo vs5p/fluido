@@ -1,0 +1,60 @@
+{
+	"info": {
+		"_postman_id": "fluido-socketchat-backend-collection",
+		"name": "Fluido SocketChat Deployed Backend Tests",
+		"description": "Postman Collection for testing the Fluido SocketChat Deployed Backend (HTTP REST & Socket.IO events).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "HTTP Endpoints",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/health",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"health"
+							]
+						},
+						"description": "Checks backend health status, active room count, player count, and server uptime."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Public Rooms",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/api/rooms/public",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"api",
+								"rooms",
+								"public"
+							]
+						},
+						"description": "Returns a list of all currently available public game rooms."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://fluido-vjph.onrender.com",
+			"type": "string"
+		}
+	]
+}

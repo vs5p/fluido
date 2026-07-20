@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { motion } from "framer-motion";
 import {
   IconBrandGoogleFilled,
   IconMail,
@@ -112,11 +111,8 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
       className="flex items-center justify-center p-4"
       style={{ height: "100dvh", background: "var(--bg-base)" }}
     >
-      <motion.div
-        initial={{ opacity: 0, y: 8, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.3, ease: [0.32, 0.72, 0, 1] }}
-        className="mac-panel w-full max-w-[420px] overflow-hidden"
+        <div
+        className="mac-panel w-full max-w-[420px] overflow-hidden anim-fade-in-scale"
       >
         <div
           className="flex items-center"
@@ -262,7 +258,7 @@ export function AuthScreen({ redirectOnSuccess = true }: { redirectOnSuccess?: b
             </p>
           )}
         </div>
-      </motion.div>
+        </div>
     </div>
   );
 }

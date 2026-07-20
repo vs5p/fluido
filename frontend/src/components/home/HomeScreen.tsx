@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { IconBolt, IconCode } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CreateRoomModal } from "@/components/room/CreateRoomModal";
 import { JoinRoomModal } from "@/components/room/JoinRoomModal";
 
@@ -13,23 +11,14 @@ export function HomeScreen() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-zinc-900 to-black p-4 sm:p-8">
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Hero Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center space-y-4 py-6 sm:py-12"
-        >
+        {/* Hero Section — CSS animation, no Framer Motion so state changes don't re-trigger */}
+        <div className="text-center space-y-4 py-6 sm:py-12 anim-fade-in-up">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">Draw, Guess, Win!</h1>
           <p className="text-xl text-white/70">Real-time multiplayer drawing game with friends</p>
-        </motion.div>
+        </div>
 
         {/* Play Options */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="grid md:grid-cols-2 gap-4"
-        >
+        <div className="grid md:grid-cols-2 gap-4 anim-fade-in-up" style={{ animationDelay: "0.1s" }}>
           <Card className="border-0 bg-gradient-to-br from-blue-600 to-blue-700 text-white shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
             onClick={() => setShowCreateModal(true)}>
             <CardContent className="p-8 flex flex-col items-center text-center gap-4">
@@ -53,14 +42,10 @@ export function HomeScreen() {
               </Button>
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* How to Play */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
+        <div className="anim-fade-in-up" style={{ animationDelay: "0.2s" }}>
           <Card className="border-white/10 bg-white/5 text-white">
             <CardHeader>
               <CardTitle className="text-2xl">How to Play</CardTitle>
@@ -92,13 +77,7 @@ export function HomeScreen() {
                   desc: "Highest score after all rounds wins. Challenge your friends and climb the leaderboard!"
                 }
               ].map((item) => (
-                <motion.div
-                  key={item.step}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + item.step * 0.1 }}
-                  className="flex gap-4"
-                >
+                <div key={item.step} className="flex gap-4">
                   <div className="flex-shrink-0">
                     <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-600/20 border border-blue-500/50 text-2xl">
                       {item.emoji}
@@ -108,36 +87,30 @@ export function HomeScreen() {
                     <h4 className="font-semibold text-lg">{item.title}</h4>
                     <p className="text-white/60 mt-1">{item.desc}</p>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </CardContent>
           </Card>
-        </motion.div>
+        </div>
 
         {/* Game Features */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="grid sm:grid-cols-2 md:grid-cols-4 gap-4"
-        >
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4 anim-fade-in-up" style={{ animationDelay: "0.3s" }}>
           {[
             { icon: "👥", title: "Multiplayer", desc: "2-12 players" },
             { icon: "🎨", title: "Creative", desc: "Free drawing canvas" },
             { icon: "⚡", title: "Real-time", desc: "Instant gameplay" },
             { icon: "🏅", title: "Leaderboard", desc: "Track scores" }
           ].map((feature) => (
-            <motion.div
+            <div
               key={feature.title}
-              whileHover={{ y: -4 }}
-              className="p-4 rounded-lg bg-white/5 border border-white/10 text-center hover:bg-white/10 transition-colors"
+              className="p-4 rounded-lg bg-white/5 border border-white/10 text-center hover:bg-white/10 transition-colors hover:-translate-y-1"
             >
               <div className="text-3xl mb-2">{feature.icon}</div>
               <h4 className="font-semibold text-sm text-white">{feature.title}</h4>
               <p className="text-xs text-white/50 mt-1">{feature.desc}</p>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       {showCreateModal && <CreateRoomModal onClose={() => setShowCreateModal(false)} />}
@@ -145,4 +118,3 @@ export function HomeScreen() {
     </div>
   );
 }
-
