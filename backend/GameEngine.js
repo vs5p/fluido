@@ -227,9 +227,35 @@ class GameEngine {
       dateTime: new Date().toISOString()
     });
 
-    // Start drawing timer with hints (Hint 1 at 50% time left, Hint 2 at 25% time left)
-    const hint1Time = Math.floor(this.room.roundDuration * 0.50);
-    const hint2Time = Math.floor(this.room.roundDuration * 0.25);
+    // Dynamic hint mechanics: Scale number of hints & timing based on word length
+    const letterCount = wordChars.filter(c => /[a-zA-Z]/.test(c)).length;
+
+    let maxHints = 1;
+    if (letterCount <= 4) {
+      maxHints = 1;
+    } else if (letterCount <= 7) {
+      maxHints = 2;
+    } else if (letterCount <= 11) {
+      maxHints = 3;
+    } else {
+      maxHints = 4;
+    }
+
+    const maxAllowed = Math.max(1, Math.floor(letterCount * 0.70));
+    maxHints = Math.min(maxHints, maxAllowed);
+
+    let hintThresholds = [];
+    if (maxHints === 1) {
+      hintThresholds = [0.45];
+    } else if (maxHints === 2) {
+      hintThresholds = [0.60, 0.30];
+    } else if (maxHints === 3) {
+      hintThresholds = [0.65, 0.40, 0.20];
+    } else {
+      hintThresholds = [0.70, 0.50, 0.30, 0.15];
+    }
+
+    const hintTimes = hintThresholds.map(pct => Math.floor(this.room.roundDuration * pct));
     let hintsFired = 0;
 
     this.room.clearTimers();
@@ -237,13 +263,10 @@ class GameEngine {
       this.room.timer--;
       this.broadcast('timer-tick', this.room.timer);
 
-      // Reveal hints at thresholds if enabled
+      // Reveal hints at dynamic thresholds if enabled
       if (this.room.enableHints) {
-        if (hintsFired === 0 && this.room.timer <= hint1Time) {
-          hintsFired = 1;
-          this.revealHint();
-        } else if (hintsFired === 1 && this.room.timer <= hint2Time) {
-          hintsFired = 2;
+        if (hintsFired < maxHints && hintTimes[hintsFired] !== undefined && this.room.timer <= hintTimes[hintsFired]) {
+          hintsFired++;
           this.revealHint();
         }
       }
@@ -268,7 +291,10 @@ class GameEngine {
         hiddenPositions.push(i);
       }
     });
-    if (hiddenPositions.length <= 1) return; // Keep at least 1 letter hidden
+
+    const letterCount = wordChars.filter(c => /[a-zA-Z]/.test(c)).length;
+    const minHiddenRequired = Math.max(1, Math.floor(letterCount * 0.25));
+    if (hiddenPositions.length <= minHiddenRequired) return;
     
     const pick = hiddenPositions[Math.floor(Math.random() * hiddenPositions.length)];
     this.room._revealedArr[pick] = wordChars[pick];

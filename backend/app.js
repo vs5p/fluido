@@ -926,9 +926,37 @@ function startDrawing(room, word) {
     dateTime: new Date().toISOString()
   });
 
-  // Hint schedule: Hint 1 at 50% time remaining, Hint 2 at 25% time remaining
-  const hint1Time = Math.floor(room.roundDuration * 0.50); // 50% time left
-  const hint2Time = Math.floor(room.roundDuration * 0.25); // 25% time left
+  // Dynamic hint mechanics: Scale number of hints & timing based on word length
+  const letterCount = wordChars.filter(c => /[a-zA-Z]/.test(c)).length;
+
+  let maxHints = 1;
+  if (letterCount <= 4) {
+    maxHints = 1;
+  } else if (letterCount <= 7) {
+    maxHints = 2;
+  } else if (letterCount <= 11) {
+    maxHints = 3;
+  } else {
+    maxHints = 4;
+  }
+
+  // Ensure at least 25% of letters remain unrevealed
+  const maxAllowed = Math.max(1, Math.floor(letterCount * 0.70));
+  maxHints = Math.min(maxHints, maxAllowed);
+
+  // Calculate threshold percentages of remaining time
+  let hintThresholds = [];
+  if (maxHints === 1) {
+    hintThresholds = [0.45];
+  } else if (maxHints === 2) {
+    hintThresholds = [0.60, 0.30];
+  } else if (maxHints === 3) {
+    hintThresholds = [0.65, 0.40, 0.20];
+  } else {
+    hintThresholds = [0.70, 0.50, 0.30, 0.15];
+  }
+
+  const hintTimes = hintThresholds.map(pct => Math.floor(room.roundDuration * pct));
   let hintsFired = 0;
 
   function revealHintLetter() {
@@ -936,7 +964,10 @@ function startDrawing(room, word) {
     wordChars.forEach((c, i) => {
       if (/[a-zA-Z]/.test(c) && room._revealedArr[i] === '_') hiddenPositions.push(i);
     });
-    if (hiddenPositions.length <= 1) return; // Keep at least 1 letter hidden
+
+    const minHiddenRequired = Math.max(1, Math.floor(letterCount * 0.25));
+    if (hiddenPositions.length <= minHiddenRequired) return;
+
     const pick = hiddenPositions[Math.floor(Math.random() * hiddenPositions.length)];
     room._revealedArr[pick] = wordChars[pick];
     const hintMask = room._revealedArr.join('');
@@ -953,12 +984,9 @@ function startDrawing(room, word) {
     room.timer--;
     io.to(`room:${room.id}`).emit("timer-tick", room.timer);
 
-    // Reveal hints at exact thresholds
-    if (hintsFired === 0 && room.timer <= hint1Time) {
-      hintsFired = 1;
-      revealHintLetter();
-    } else if (hintsFired === 1 && room.timer <= hint2Time) {
-      hintsFired = 2;
+    // Reveal hints at dynamic thresholds
+    if (hintsFired < maxHints && hintTimes[hintsFired] !== undefined && room.timer <= hintTimes[hintsFired]) {
+      hintsFired++;
       revealHintLetter();
     }
     
